@@ -1,13 +1,33 @@
 
 document.addEventListener('DOMContentLoaded', function () {
 
+    let capacity_min, capacity_max
+
+    let games = document.querySelectorAll('.home .games-block .oxy-post')
+    if (games) {
+        games.forEach(game => {
+            game.querySelector('.latepoint-book-button').addEventListener('click', () => {
+                capacity_min = game.querySelector('.capacity').dataset.capacityMin
+                capacity_max = game.querySelector('.capacity').dataset.capacityMax
+            })
+        })
+    }
+
+    let single_game = document.querySelector('.single-game section#profile')
+    if (single_game) {
+        single_game.querySelector('.latepoint-book-button').addEventListener('click', () => {
+            capacity_min = single_game.querySelector('.capacity').dataset.capacityMin
+            capacity_max = single_game.querySelector('.capacity').dataset.capacityMax
+        })
+    }
+
     function updateSummaryData(currentStep, boxTitle, boxContent) {
         let obj = Summary_Data.find(obj => obj.step === currentStep)
         obj.title = boxTitle
         obj.content = boxContent
 
         Summary_Data_Filled = Summary_Data.filter(obj => Object.keys(obj).length === 3)
-        console.log(Summary_Data_Filled)
+        //console.log(Summary_Data_Filled)
     }
     function createSummaryElement(array, selector) {
 
@@ -40,6 +60,30 @@ document.addEventListener('DOMContentLoaded', function () {
 
         container.append(custom_summary)
     }
+    function attendanceVerification(min, max) {
+        let attendance_input = document.querySelector("#booking_custom_fields_cf_wtorlyzy")
+        if (attendance_input) {
+            attendance_input.setAttribute('placeholder', "參加人數 (限制 " + capacity_min + "-" + capacity_max + " 人)")
+
+            attendance_input.addEventListener('keypress', (e) => {
+                let code = e.which ? e.which : e.keyCode
+                if ((code !== 46 && code > 31 && (code < 48 || code > 57)) || (code === 46 && e.target.value.indexOf('.') > -1)) {
+                    e.preventDefault()
+                }
+            })
+            attendance_input.addEventListener('keyup', () => {
+
+                if (parseInt(attendance_input.value) > capacity_max) {
+                    attendance_input.value = capacity_max
+                    attendance_input.setAttribute('value', capacity_max)
+                }
+                if (parseInt(attendance_input.value) < capacity_min) {
+                    attendance_input.value = capacity_min
+                    attendance_input.setAttribute('value', capacity_min)
+                }
+            })
+        }
+    }
     document.addEventListener('DOMNodeInserted', function (event) {
 
         // Latepoint Lightbox Opened
@@ -49,7 +93,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
         if (event.target.classList.contains("latepoint-lightbox-w")) {
 
-            console.log('Latepoint Lightbox Opened.')
+            //console.log('Latepoint Lightbox Opened.')
+
             Summary_Data = [
                 {
                     'step': 'service'
@@ -77,7 +122,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 },
             ]
             Summary_Data_Filled = []
-            let capacity_min, capacity_max
+
+            attendanceVerification(capacity_min, capacity_max)
 
             const observer = new MutationObserver(function (mutationList) {
 
@@ -163,30 +209,13 @@ document.addEventListener('DOMContentLoaded', function () {
                         confirm_btn.textContent = "我已閱讀並同意以上注意事項"
                     }
 
+
                     // 表單提示/驗證: 參加人數
                     if (!conditions.some(el => mutation.oldValue.includes(el)) &&
                         mutation.target.matches(".step-changed.current-step-custom_fields_for_booking.step-content-loaded ")) {
 
-                        let attendance_input = document.querySelector("#booking_custom_fields_cf_wtorlyzy")
-                        attendance_input.setAttribute('placeholder', "參加人數 (限制 " + capacity_min + "-" + capacity_max + " 人)")
+                        attendanceVerification(capacity_min, capacity_max)
 
-                        attendance_input.addEventListener('keypress', (e) => {
-                            let code = e.which ? e.which : e.keyCode
-                            if ((code !== 46 && code > 31 && (code < 48 || code > 57)) || (code === 46 && e.target.value.indexOf('.') > -1)) {
-                                e.preventDefault()
-                            }
-                        })
-                        attendance_input.addEventListener('keyup', () => {
-
-                            if (parseInt(attendance_input.value) > capacity_max) {
-                                attendance_input.value = capacity_max
-                                attendance_input.setAttribute('value', capacity_max)
-                            }
-                            if (parseInt(attendance_input.value) < capacity_min) {
-                                attendance_input.value = capacity_min
-                                attendance_input.setAttribute('value', capacity_min)
-                            }
-                        })
                     }
 
                     // 選擇: 參加人數
